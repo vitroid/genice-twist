@@ -42,7 +42,7 @@ setup(
             'twist  = genice_twist.formats.twist',
         ],
     },
-    install_requires=['genice>=0.25', 'genice-svg>=0.4', 'twist-op'],
+    install_requires=['genice>=0.25', 'genice-svg>=0.4', 'twist-op>=0.2'],
 
     license='MIT',
 )
