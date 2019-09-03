@@ -27,6 +27,13 @@ options:
     rotatez=30   Rotate the picture (SVG and PNG)
 """
 
+
+desc = { "ref": { "MYT2019": 'Matsumoto, M., Yagasaki, T. & Tanaka, H. A Bayesian approach for identification of ice Ih, ice Ic, high density, and low density liquid water with a torsional order parameter. J. Chem. Phys. 150, 214504 (2019).'},
+         "brief": "Twist order parameter.",
+         "usage": __doc__,
+         }
+
+
 from math import atan2, sin, cos, pi
 import cmath
 import colorsys
