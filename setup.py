@@ -12,7 +12,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(os.path.dirname(__file__), 'genice_twist', '__init__.py'),
                  encoding='utf8') as version_file:
     metadata = dict(re.findall(r"""__([a-z]+)__ = "([^"]+)""", version_file.read()))
-    
+
 long_desc = "".join(open("README.md").readlines())
 
 
@@ -36,13 +36,13 @@ setup(
     packages=['genice_twist',
               'genice_twist.formats',
     ],
-    
+
     entry_points = {
         'genice_format': [
             'twist  = genice_twist.formats.twist',
         ],
     },
-    install_requires=['genice>=0.25', 'genice-svg>=0.4', 'twist-op>=0.2', 'sklearn'],
+    install_requires=['genice<2.0', 'genice-svg>=0.4', 'twist-op>=0.2', 'sklearn'],
 
     license='MIT',
 )

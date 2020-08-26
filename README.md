@@ -2,13 +2,14 @@
 
 Draw the structure with twist order parameter.
 
-version 0.1.1
+version 0.1.2
 
 ## Requirements
 
-* genice>=0.25
+* genice<2.0
 * genice-svg>=0.4
 * twist-op>=0.2
+* sklearn
 
 ## Installation from PyPI
 
