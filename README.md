@@ -2,12 +2,12 @@
 
 Draw the structure with twist order parameter.
 
-version 0.1.2
+version 0.2.0
 
 ## Requirements
 
-* genice<2.0
-* genice-svg>=0.4
+* genice>=2.0
+* genice-svg>=0.7
 * twist-op>=0.2
 * sklearn
 

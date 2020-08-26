@@ -37,7 +37,7 @@ desc = { "ref": { "MYT2019": 'Matsumoto, M., Yagasaki, T. & Tanaka, H. A Bayesia
 from math import atan2, sin, cos, pi
 import cmath
 import colorsys
-import logging
+from logging import getLogger
 import io
 import sys
 
@@ -58,7 +58,7 @@ class Twist():
 
 
     def iter(self):
-        logger = logging.getLogger()
+        logger = getLogger()
         vecs = np.zeros([len(self.graph.edges()),3])
         cent = dict()
         edges = self.graph.edges()
@@ -75,7 +75,7 @@ class Twist():
         for edge, tw in top.twist_iter(edges, vecs):
             yield edge, cent[edge], tw
 
-            
+
     def serialize(self, tag):
         s = "# i, j, center, of, bond, bond-twist\n"
         s += "{0}\n".format(tag)
@@ -87,6 +87,7 @@ class Twist():
         return s
 
     def yaplot(self):
+        logger = getLogger()
         maxcir = 16
         maxrad = 6
         # 16x6=96 color variations
@@ -97,7 +98,7 @@ class Twist():
                 hue = ((angle - 60 + 360) / 360) % 1.0
                 bri = rad / (maxrad-1)
                 sat = sin(angle*pi/180)**2
-                logging.debug((angle,sat,bri))
+                logger.debug((angle,sat,bri))
                 r,g,b = colorsys.hsv_to_rgb(hue, sat, bri)
                 n = cir*maxrad + rad + 3
                 s += yp.SetPalette(n,int(r*255),int(g*255),int(b*255))
@@ -146,7 +147,7 @@ class Twist():
             bpos = apos + dp
             o = dp / np.linalg.norm(dp)
             o *= RR
-            
+
             #Color setting
             cosine = twist.real
             sine   = twist.imag
@@ -170,7 +171,7 @@ class Twist():
         #
         # Twist order parameter to distinguish phases.
         #
-        logger = logging.getLogger()
+        logger = getLogger()
 
         pxF = dict()
         phases = list(phasefiles)
@@ -224,7 +225,7 @@ class Twist():
             o = dp / np.linalg.norm(dp)
             o *= RR
             center = apos + dp/2
-            
+
             #Color setting
             bin = int(twist.real*19.999+20), int(twist.imag*19.999+20)
             if pX[0][bin] == 0.0:
@@ -259,9 +260,9 @@ class Twist():
         # Twist order parameter to distinguish phases.
         # Simple criteria.
         #
-        logger = logging.getLogger()
+        logger = getLogger()
         anglerange = 20
-        
+
         Rsphere = 0.04  # nm
         Rcyl    = 0.03  # nm
         RR      = (Rsphere**2 - Rcyl**2)**0.5
@@ -278,7 +279,7 @@ class Twist():
             o = dp / np.linalg.norm(dp)
             o *= RR
             center = apos + dp/2
-            
+
             #Color setting
             cosine, sine  = twist.real, twist.imag
             angle = atan2(sine,cosine) * 180 / pi
@@ -302,13 +303,13 @@ class Twist():
                    size=(xmax-xmin, ymax-ymin))
 
 
-    
+
     def svg4(self, rotmat, phasefiles, render=sRender, shadow=None):
         #
         # Twist order parameter to distinguish phases.
         # Color only when likelihood > 0.5.
         #
-        logger = logging.getLogger()
+        logger = getLogger()
         logger.info("Calculating OP...")
         pxF = dict()
         phases = list(phasefiles)
@@ -363,13 +364,13 @@ class Twist():
             o = dp / np.linalg.norm(dp)
             o *= RR
             center = apos + dp/2
-            
+
             #Color setting
             bin = int(twist.real*19.999+20), int(twist.imag*19.999+20)
             green = pFx["HDL"][bin]
             blue  = pFx["LDL"][bin]
             red   = pFx["ice"][bin]
-            
+
             if green > 0.5:
                 green = 1.0
                 blue = 0
@@ -393,101 +394,100 @@ class Twist():
         return render(prims, Rsphere, shadow=shadow,
                    topleft=np.array((xmin,ymin)),
                    size=(xmax-xmin, ymax-ymin))
-    
 
-def hook2(lattice):
-    lattice.logger.info("Hook2: Complex bond twists.")
-    cell = lattice.repcell 
-
-    positions = lattice.reppositions
-    graph = nx.Graph(lattice.graph) #undirected
-
-    twist = Twist(graph, positions, cell.mat)
-    if lattice.bt_type == "yaplot":
-        print(twist.yaplot())
-    elif lattice.bt_type == "svg":
-        if lattice.bt_scheme == "CM":
-            print(twist.svg2(lattice.bt_rotmat, lattice.bt_phases))
-        elif lattice.bt_scheme == "SB":
-            print(twist.svg3(lattice.bt_rotmat))
-        elif lattice.bt_scheme == "DB":
-            print(twist.svg4(lattice.bt_rotmat, lattice.bt_phases))
-        else:
-            # rainbow
-            print(twist.svg(lattice.bt_rotmat))
-    elif lattice.bt_type == "png":
-        if lattice.bt_scheme == "CM":
-            twist.svg2(lattice.bt_rotmat, lattice.bt_phases, render=pRender, shadow=lattice.bt_shadow)
-        elif lattice.bt_scheme == "SB":
-            twist.svg3(lattice.bt_rotmat, render=pRender, shadow=lattice.bt_shadow)
-        elif lattice.bt_scheme == "DB":
-            twist.svg4(lattice.bt_rotmat, lattice.bt_phases, render=pRender, shadow=lattice.bt_shadow)
-        else:
-            twist.svg(lattice.bt_rotmat, render=pRender, shadow=lattice.bt_shadow)
-    else: # "file"
-        print(cell.serialize_BOX9(), end="")
-        print(twist.serialize("@BTWC"), end="")
-    lattice.logger.info("Hook2: end.")
+import genice.formats
+class Format(genice.formats.Format):
 
 
-
-def hook0(lattice, arg):
-    lattice.logger.info("Hook0: ArgParser.")
-    lattice.bt_type = "file" # output the raw twist values in @BTWC format
-    lattice.bt_scheme = None # rainbow coloring
-    lattice.bt_shadow = None
-    lattice.bt_rotmat = np.array([[1., 0, 0], [0, 1, 0], [0, 0, 1]])
-    lattice.bt_phases = {"1h": "IhST2.twhist",
-                         "1c": "IcST2.twhist",
-                         "LDL": "LDLST2.twhist",
-                         "HDL": "HDLST2.twhist"}
-    
-    if arg == "":
-        pass
-        #This is default.  No reshaping applied.
-    else:
-        args = arg.split(":")
-        for a in args:
-            if a.find("=") >= 0:
-                key, value = a.split("=")
-                lattice.logger.info("Option with arguments: {0} := {1}".format(key,value))
-                if key == "rotmat":
-                    value = re.search(r"\[([-0-9,.]+)\]", value).group(1)
-                    lattice.bt_rotmat = np.array([float(x) for x in value.split(",")]).reshape(3,3)
-                elif key == "rotatex":
-                    value = float(value)*pi/180
-                    cosx = cos(value)
-                    sinx = sin(value)
-                    R = np.array([[1, 0, 0], [0, cosx, sinx], [0,-sinx, cosx]])
-                    lattice.bt_rotmat = np.dot(lattice.bt_rotmat, R)
-                elif key == "rotatey":
-                    value = float(value)*pi/180
-                    cosx = cos(value)
-                    sinx = sin(value)
-                    R = np.array([[cosx, 0, -sinx], [0, 1, 0], [sinx, 0, cosx]])
-                    lattice.bt_rotmat = np.dot(lattice.bt_rotmat, R)
-                elif key == "rotatez":
-                    value = float(value)*pi/180
-                    cosx = cos(value)
-                    sinx = sin(value)
-                    R = np.array([[cosx, sinx, 0], [-sinx, cosx, 0], [0, 0, 1]])
-                    lattice.bt_rotmat = np.dot(lattice.bt_rotmat, R)
-                else:
-                    #may be the file names for phases. just record them.
-                    lattice.bt_phases[key] = value
-                    if value == "":
-                        del lattice.bt_phases[key]
+    def __init__(self, **kwargs):
+        logger = getLogger()
+        logger.info("Hook0: ArgParser.")
+        self.type = "file" # output the raw twist values in @BTWC format
+        self.scheme = None # rainbow coloring
+        self.shadow = None
+        self.rotmat = np.array([[1., 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.phases = {"1h": "IhST2.twhist",
+                             "1c": "IcST2.twhist",
+                             "LDL": "LDLST2.twhist",
+                             "HDL": "HDLST2.twhist"}
+        for key, value in kwargs.items():
+            logger.info("Option with arguments: {0} := {1}".format(key,value))
+            if key == "rotmat":
+                value = re.search(r"\[([-0-9,.]+)\]", value).group(1)
+                self.rotmat = np.array([float(x) for x in value.split(",")]).reshape(3,3)
+            elif key == "rotatex":
+                value = float(value)*pi/180
+                cosx = cos(value)
+                sinx = sin(value)
+                R = np.array([[1, 0, 0], [0, cosx, sinx], [0,-sinx, cosx]])
+                self.rotmat = np.dot(self.rotmat, R)
+            elif key == "rotatey":
+                value = float(value)*pi/180
+                cosx = cos(value)
+                sinx = sin(value)
+                R = np.array([[cosx, 0, -sinx], [0, 1, 0], [sinx, 0, cosx]])
+                self.rotmat = np.dot(self.rotmat, R)
+            elif key == "rotatez":
+                value = float(value)*pi/180
+                cosx = cos(value)
+                sinx = sin(value)
+                R = np.array([[cosx, sinx, 0], [-sinx, cosx, 0], [0, 0, 1]])
+                self.rotmat = np.dot(self.rotmat, R)
+            elif value is not True:
+                #may be the file names for phases. just record them.
+                self.phases[key] = value
+                if value == "":
+                    del self.phases[key]
             else:
-                lattice.logger.info("Flags: {0}".format(a))
+                a = key
+                logger.info("Flags: {0}".format(a))
                 if a == "shadow":
-                    lattice.bt_shadow = "#4441"
+                    self.shadow = "#4441"
                 elif a in ("svg", "png", "yaplot"):
-                    lattice.bt_type = a
+                    self.type = a
                 elif a in ("CM", "DB", "SB"):
-                    lattice.bt_scheme = a
+                    self.scheme = a
                 else:
                     assert False, "Wrong options."
-    lattice.logger.info("Hook0: end.")
+        logger.info("Hook0: end.")
 
-    
-hooks = {0:hook0, 2:hook2}
+
+    def hooks(self):
+        return {2:self.hook2}
+
+
+    def hook2(self, lattice):
+        lattice.logger.info("Hook2: Complex bond twists.")
+        cell = lattice.repcell
+
+        positions = lattice.reppositions
+        graph = nx.Graph(lattice.graph) #undirected
+
+        twist = Twist(graph, positions, cell.mat)
+        s = ""
+        if self.type == "yaplot":
+            s = twist.yaplot()
+        elif self.type == "svg":
+            if self.scheme == "CM":
+                s = twist.svg2(self.rotmat, self.phases)
+            elif self.scheme == "SB":
+                s = twist.svg3(self.rotmat)
+            elif self.scheme == "DB":
+                s = twist.svg4(self.rotmat, self.phases)
+            else:
+                # rainbow
+                s = twist.svg(self.rotmat)
+        elif self.type == "png":
+            if self.scheme == "CM":
+                s = twist.svg2(self.rotmat, self.phases, render=pRender, shadow=self.shadow)
+            elif self.scheme == "SB":
+                s = twist.svg3(self.rotmat, render=pRender, shadow=self.shadow)
+            elif self.scheme == "DB":
+                s = twist.svg4(self.rotmat, self.phases, render=pRender, shadow=self.shadow)
+            else:
+                s = twist.svg(self.rotmat, render=pRender, shadow=self.shadow)
+        else: # "file"
+            s = cell.serialize_BOX9()
+            s += twist.serialize("@BTWC")
+        self.output = s
+        lattice.logger.info("Hook2: end.")
