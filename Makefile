@@ -1,62 +1,63 @@
 .DELETE_ON_ERROR:
+GENICE=genice2
+BASE=genice2_twist
+PACKAGE=genice2-twist
+
 all: README.md
 
-%: temp_% replacer.py genice_twist/formats/twist.py genice_twist/__init__.py
+%: temp_% replacer.py $(wildcard $(BASE)/formats/*.py) $(BASE)/__init__.py
+	pip install genice2_dev
 	python replacer.py < $< > $@
 
-
-test: CRN1.btwc.test CRN1.CM.twist.png CRN1.DB.twist.png CRN1.SB.twist.png CRN1.twist.png \
-      CRN1.twist.yap # CRN1.CM.twist.svg CRN1.DB.twist.svg CRN1.SB.twist.svg CRN1.twist.svg
+test: CRN1.btwc.test CRN1.CM.twist.png CRN1.DB.twist.png CRN1.SB.twist.png CRN1.twist.png CRN1.twist.svg\
+      CRN1.twist.yap # CRN1.CM.twist.svg CRN1.DB.twist.svg CRN1.SB.twist.svg
 
 %.test:
 	make $*
 	diff $* ref/$*
-%.btwc: genice_twist/formats/twist.py
-	genice $* -f twist > $@
-%.CM.twist.png: genice_twist/formats/twist.py
-	genice $* -f twist[png:CM] > $@
-%.CM.twist.svg: genice_twist/formats/twist.py
-	genice $* -f twist[svg:CM] > $@
-%.DB.twist.png: genice_twist/formats/twist.py
-	genice $* -f twist[png:DB] > $@
-%.DB.twist.svg: genice_twist/formats/twist.py
-	genice $* -f twist[svg:DB] > $@
-%.SB.twist.png: genice_twist/formats/twist.py
-	genice $* -f twist[png:SB] > $@
-%.SB.twist.svg: genice_twist/formats/twist.py
-	genice $* -f twist[svg:SB] > $@
-%.twist.yap: genice_twist/formats/twist.py
-	genice $* -f twist[yaplot] > $@
-%.twist.png: genice_twist/formats/twist.py
-	genice $* -f twist[png] > $@
-%.twist.svg: genice_twist/formats/twist.py
-	genice $* -f twist[svg] > $@
-
-prepare: # might require root privilege.
-	pip install genice genice-svg twist-op
-
+%.btwc: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist > $@
+%.CM.twist.png: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[png:CM] > $@
+%.CM.twist.svg: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[svg:CM] > $@
+%.DB.twist.png: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[png:DB] > $@
+%.DB.twist.svg: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[svg:DB] > $@
+%.SB.twist.png: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[png:SB] > $@
+%.SB.twist.svg: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[svg:SB] > $@
+%.twist.yap: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[yaplot] > $@
+%.twist.png: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[png] > $@
+%.twist.svg: $(BASE)/formats/twist.py
+	$(GENICE) $* -f twist[svg] > $@
+sample.png: CRN1.twist.svg
+	inkscape $< -o $@
 
 test-deploy: build
 	twine upload -r pypitest dist/*
 test-install:
-	pip install pairlist
-	pip install --index-url https://test.pypi.org/simple/ genice-twist
+	pip install --index-url https://test.pypi.org/simple/ $(PACKAGE)
 
 
 
 install:
-	./setup.py install
+	python ./setup.py install
 uninstall:
-	-pip uninstall -y genice-twist
-build: README.md $(wildcard genice_twist/formats/*.py)
-	./setup.py sdist bdist_wheel
+	-pip uninstall -y $(PACKAGE)
+build: README.md $(wildcard $(BASE)/formats/*.py)
+	python ./setup.py sdist bdist_wheel
 
 
 deploy: build
-	twine upload dist/*
+	twine upload --repository pypi dist/*
 check:
 	./setup.py check
 clean:
-	-rm $(ALL) *~ */*~ *.btwc *.png *.svg *.yap
+	-rm $(ALL) *~ */*~ *.btwc *.svg *.yap CRN1*.png ja
 	-rm -rf build dist *.egg-info
 	-find . -name __pycache__ | xargs rm -rf

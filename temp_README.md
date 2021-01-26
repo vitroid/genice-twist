@@ -1,30 +1,46 @@
-# [genice-twist](%%url%%)
+<img src="sample.png">
 
-%%summary%%
+```shell
+genice2 CRN1 -f twist[svg] > sample.svg
+```
 
-version %%version%%
+# [{{package}}]({{url}})
+
+{{summary}}
+
+version {{version}}
 
 ## Requirements
 
-* %%requires%%
+{% for i in requires %}
+* {{i}}
+{%- endfor %}
 
 ## Installation from PyPI
 
-    % pip install %%package%%
+```shell
+% pip install {{package}}
+```
 
 ## Manual Installation
 
 ### System-wide installation
 
-    % make install
+```shell
+% make install
+```
 
-### Private Installation
+### Private installation
 
-Copy the files in formats/ into your local formats/ folder.
+Copy the files in {{base}}/formats/ into your local formats/ folder.
+
 
 ## Usage
 
-    %%usage%%
+{%- filter indent %}
+    {{usage}}
+{%- endfilter %}
+
 
 ## Auxiliary Files
 
@@ -33,11 +49,13 @@ Copy the files in formats/ into your local formats/ folder.
 * LDLST2.twhist
 * HDLST2.twhist
 
-They are two-dimensional (i.e. real and imaginary) histograms of twist order parameter of ST2 water at 235 K, 0.98 g cm$^{-3}$. You have to prepare the appropriate histogram if you want to apply CM (color-mixing) or DB (decision-boundary) coloring scheme to other water models or in other conditions.
+They are two-dimensional (i.e. real and imaginary) histograms of twist order parameter of ST2 water at 235 K, 0.98 g cm<sup>-3</sup>. You have to prepare the appropriate histogram if you want to apply CM (color-mixing) or DB (decision-boundary) coloring scheme to other water models or in other conditions.
 
 ## Test in place
 
-    % make test
+```shell
+% make test
+```
 
 ## Reference
 

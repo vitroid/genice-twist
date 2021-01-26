@@ -45,10 +45,13 @@ import numpy as np
 import networkx as nx
 import yaplotlib as yp
 
-from genice_svg.hooks import draw_cell
-from genice_svg.render_png import Render as pRender
-from genice_svg.render_svg import Render as sRender
+from genice2_svg.formats.svg import draw_cell
+from genice2_svg.render_png import Render as pRender
+from genice2_svg.render_svg import Render as sRender
 import twist_op as top
+import genice2.formats
+from genice2.decorators import timeit, banner
+
 
 class Twist():
     def __init__(self, graph, relcoord, cell):
@@ -133,7 +136,7 @@ class Twist():
 
     def svg(self, rotmat, render=sRender, shadow=None):
         Rsphere = 0.04  # nm
-        Rcyl    = 0.03  # nm
+        Rcyl    = 0.02  # nm
         RR      = (Rsphere**2 - Rcyl**2)**0.5
         prims = []
         proj = np.dot(self.cell, rotmat)
@@ -210,7 +213,7 @@ class Twist():
         pFx["ice"] = pFx["1c"] + pFx["1h"]
 
         Rsphere = 0.04  # nm
-        Rcyl    = 0.03  # nm
+        Rcyl    = 0.02  # nm
         RR      = (Rsphere**2 - Rcyl**2)**0.5
         prims = []
         proj = np.dot(self.cell, rotmat)
@@ -264,7 +267,7 @@ class Twist():
         anglerange = 20
 
         Rsphere = 0.04  # nm
-        Rcyl    = 0.03  # nm
+        Rcyl    = 0.02  # nm
         RR      = (Rsphere**2 - Rcyl**2)**0.5
         prims = []
         proj = np.dot(self.cell, rotmat)
@@ -349,7 +352,7 @@ class Twist():
         logger.info("Done.")
 
         Rsphere = 0.04  # nm
-        Rcyl    = 0.03  # nm
+        Rcyl    = 0.02  # nm
         RR      = (Rsphere**2 - Rcyl**2)**0.5
         prims = []
         proj = np.dot(self.cell, rotmat)
@@ -395,8 +398,7 @@ class Twist():
                    topleft=np.array((xmin,ymin)),
                    size=(xmax-xmin, ymax-ymin))
 
-import genice.formats
-class Format(genice.formats.Format):
+class Format(genice2.formats.Format):
 
 
     def __init__(self, **kwargs):
@@ -453,11 +455,13 @@ class Format(genice.formats.Format):
 
 
     def hooks(self):
-        return {2:self.hook2}
+        return {2:self.Hook2}
 
-
-    def hook2(self, lattice):
-        lattice.logger.info("Hook2: Complex bond twists.")
+    @timeit
+    @banner
+    def Hook2(self, lattice):
+        "Complex bond twists."
+        logger = getLogger()
         cell = lattice.repcell
 
         positions = lattice.reppositions
@@ -490,4 +494,3 @@ class Format(genice.formats.Format):
             s = cell.serialize_BOX9()
             s += twist.serialize("@BTWC")
         self.output = s
-        lattice.logger.info("Hook2: end.")
