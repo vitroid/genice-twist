@@ -8,7 +8,7 @@ genice2 CRN1 -f twist[svg] > sample.svg
 
 Draw the structure with twist order parameter.
 
-version 0.3
+version 2.0
 
 ## Requirements
 
